@@ -1,0 +1,64 @@
+project     $Year1    $Year2   $Year3   $Year4   $NPV in Millions
+1            3        -        -       -         2
+2            -        5        1       -         3
+3            1        2        1       2         1 
+4            10       4        2       -         5 
+5            2        -        5       1         4
+Capacity$    12       8        8       4    
+
+Above are capital constratints - Now we need to see dependency constraints 
+Project 4 and 5 an mutually exclusive
+maximum of 4 projects can be selected 
+Project 4 depends on Project 2
+Projects 1 and 3 must go together 
+
+Decision thoughts :
+  i) What combination of projects will maximize the NPV ? 
+  ii) Which is the max expected NPV that can be acheived ? 
+
+x_i = Project number 
+Objective : min z sum c_i*x_i
+
+Constratints: 
+#yearly budget constratints
+3x1 + x3 + 10x4 + 2x5 <= 12
+5x2 + 2x3 + 4x4 <= 8
+x2 + x3 + 2x4 + 5x5 <= 8
+2x3 + x5 <= 4
+x1+x2+x3+x4+x5 <= 4 #a maximum of 4 projects can only be selected
+-x2 + x4 <= 0 #Project 4 depends on the selection of Project 2 
+x1 - x3 = 0 #Project 1 and project 3 must go together
+
+#Binary Constraint
+x_i = {0,1} 0 if the project is not slected, 1 if the project is selected 
+
+R Code: 
+libarary(lpsolve)
+
+#setting co.effecient of the objective function
+f.obj <- c(2,3,1,5,4)
+
+#matrix corresponding to the coeffecient of constraints by row
+f.con <- matrix(c(3,0,1,10,2,   #capital req for year 1
+                  0,5,2,4,0,    #capital req for year 2
+                  0,1,1,2,5,    #capital req for year 3
+                  0,0,2,0,1,    #capital req for year 4
+                  0,0,0,1,1,    #project 4 and 5 are mutually exclusive
+                  0,-1,0,1,0,   #project 4 depends on project 2
+                  1,0,-1,0,0)   #project 1 and 3 go together
+                nrow=8,byrow=TRUE)
+#setting inequality constraints 
+f.dir <- c(rep("<=",7),"=")
+
+#R.H.S coeffecients 
+f.rhs <- c(12,8,8,4,1,4,0,0)
+
+#execution
+lp("max", f.obj,f.con,f.dir,f.rhs, int.vec = 1:5, all.bin = TRUE)
+
+#Final
+lp("max", f.obj,f.con,f.dir,f.rhs, int.vec = 1:5, all.bin = TRUE)$solution
+
+
+
+                  
